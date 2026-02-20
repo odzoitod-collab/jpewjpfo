@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gold Metal Hub</title>
+    <style>
+        :root {
+            --gold: linear-gradient(145deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            --dark-metal: linear-gradient(145deg, #2c2c2c, #000000);
+            --border-gold: #d4af37;
+            --text-color: #f1e5ac;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            height: 100%;
+            background: #1a1a1a;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            color: var(--text-color);
+        }
+
+        /* Контейнер для iframe */
+        .app-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 70px; /* Оставляем место для меню */
+            background: #000;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+
+        iframe.active {
+            display: block;
+        }
+
+        /* Навигационная панель */
+        .navigation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: var(--dark-metal);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 2px solid var(--border-gold);
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--text-color);
+            border: none;
+            background: none;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        /* Имитация иконок текстом */
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+            background: var(--gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .nav-item.active {
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+
+        .nav-item.active .nav-icon {
+            text-shadow: 0 0 8px rgba(252, 246, 186, 0.5);
+        }
+
+        /* Эффект металлической кнопки */
+        .nav-item:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container" id="view-port">
+    <iframe id="analytics" src="https://anakaitack-web.vercel.app/" class="active"></iframe>
+    <iframe id="referrals" src="https://anakaitack-web-9fio.vercel.app/"></iframe>
+    <iframe id="hub" src="https://hisrory-vo62.vercel.app/"></iframe>
+    <iframe id="ideas" src="https://ideas-omega-three.vercel.app/"></iframe>
+</div>
+
+<nav class="navigation">
+    <button class="nav-item active" onclick="openApp('analytics', this)">
+        <div class="nav-icon">📊</div>
+        <span>Stats</span>
+    </button>
+    <button class="nav-item" onclick="openApp('referrals', this)">
+        <div class="nav-icon">💎</div>
+        <span>Ref</span>
+    </button>
+    <button class="nav-item" onclick="openApp('hub', this)">
+        <div class="nav-icon">⚙️</div>
+        <span>Hub</span>
+    </button>
+    <button class="nav-item" onclick="openApp('ideas', this)">
+        <div class="nav-icon">💡</div>
+        <span>Ideas</span>
+    </button>
+</nav>
+
+<script>
+    function openApp(appId, element) {
+        // Скрываем все iframe
+        const iframes = document.querySelectorAll('iframe');
+        iframes.forEach(iframe => iframe.classList.remove('active'));
+
+        // Убираем активный класс у кнопок
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => item.classList.remove('active'));
+
+        // Показываем нужный
+        document.getElementById(appId).classList.add('active');
+        element.classList.add('active');
+
+        // Вибрация для мобильных устройств (тактильный отклик)
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(10);
+        }
+    }
+</script>
+
+</body>
+</html>
