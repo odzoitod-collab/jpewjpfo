@@ -3,158 +3,696 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gold Metal Hub</title>
+    <title>IRL Team • App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
-            --gold: linear-gradient(145deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            --dark-metal: linear-gradient(145deg, #2c2c2c, #000000);
-            --border-gold: #d4af37;
-            --text-color: #f1e5ac;
+            --bg: #09090b;
+            --bg2: #000000;
+            --text: #f4f4f5;
+            --hint: #a1a1aa;
+            --accent: #d4d4d8;
+            --accent-bright: #ffffff;
+            --accent-light: rgba(255, 255, 255, 0.08);
+            --metal: linear-gradient(145deg, #18181b 0%, #0f0f11 50%, #09090b 100%);
+            --metal-border: 1px solid rgba(255, 255, 255, 0.08);
+            --metal-shine: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%);
+            --card-bg: #0f0f11;
+            
+            /* Цвета графиков и бейджей */
+            --green: #34d399; --green-light: rgba(52, 211, 153, 0.1);
+            --red: #ef4444; --red-light: rgba(239, 68, 68, 0.1);
+            --orange: #fb923c; --orange-light: rgba(251, 146, 60, 0.1);
+            --purple: #a78bfa; --purple-light: rgba(167, 139, 250, 0.1);
+            --pink: #f472b6; --pink-light: rgba(244, 114, 182, 0.1);
+            --blue: #38bdf8; --blue-light: rgba(56, 189, 248, 0.1);
+
+            --radius: 16px;
+            --radius-sm: 12px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.6);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', -apple-system, sans-serif;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { font-family: var(--font-body); background: var(--bg2); color: var(--text); padding-bottom: 90px; min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 
-        body, html {
-            height: 100%;
-            background: #1a1a1a;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            color: var(--text-color);
-        }
+        /* Typography & Utilities */
+        .font-display { font-family: var(--font-display); }
+        .text-hint { color: var(--hint); }
+        .text-green { color: var(--green); }
+        .text-red { color: var(--red); }
+        
+        /* Global Header */
+        .header { background: rgba(15, 15, 17, 0.8); backdrop-filter: blur(10px); padding: 12px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 50; border-bottom: var(--metal-border); }
+        .header-avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--bg2); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; font-weight: 700; color: var(--accent-bright); }
+        .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .header-info { flex: 1; min-width: 0; }
+        .header-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+        .header-sub { font-size: 11px; color: var(--hint); margin-top: 2px; text-transform: uppercase; font-weight: 500; letter-spacing: 0.05em; }
 
-        /* Контейнер для iframe */
-        .app-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 70px; /* Оставляем место для меню */
-            background: #000;
-        }
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(9, 9, 11, 0.95); display: flex; justify-content: space-around; padding: 10px 6px 24px; border-top: var(--metal-border); z-index: 100; backdrop-filter: blur(16px); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--hint); font-size: 10px; font-weight: 600; padding: 4px 12px; border-radius: 12px; transition: 0.2s; border: none; background: none; cursor: pointer; flex: 1; font-family: var(--font-body); }
+        .nav-item svg { width: 22px; height: 22px; transition: 0.2s; opacity: 0.7; }
+        .nav-item.active { color: var(--accent-bright); text-shadow: 0 0 16px rgba(255,255,255,0.4); }
+        .nav-item.active svg { transform: translateY(-2px); stroke: var(--accent-bright); opacity: 1; }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: none;
-        }
+        /* Views */
+        .main-view { display: none; animation: fadeIn 0.3s ease; }
+        .main-view.active { display: block; }
+        .sub-view { display: none; animation: fadeIn 0.2s ease; }
+        .sub-view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        iframe.active {
-            display: block;
-        }
+        /* Shared Components */
+        .card { background: var(--card-bg); border-radius: var(--radius); padding: 16px; margin: 0 16px 16px; box-shadow: var(--shadow); position: relative; overflow: hidden; border: var(--metal-border); }
+        .card::before { content: ''; position: absolute; inset: 0; background: var(--metal-shine); pointer-events: none; border-radius: inherit; }
+        .hero-card { background: var(--metal); padding: 24px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05); }
+        
+        .section-title { font-size: 12px; color: var(--hint); text-transform: uppercase; letter-spacing: 0.05em; margin: 24px 16px 12px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+        
+        /* Internal Tabs (Sub-navs) */
+        .tabs { display: flex; background: rgba(15, 15, 17, 0.8); backdrop-filter: blur(10px); padding: 12px 16px; gap: 8px; position: sticky; top: 65px; z-index: 40; border-bottom: var(--metal-border); margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab { padding: 10px 14px; text-align: center; font-size: 12px; font-weight: 600; color: var(--hint); background: rgba(255,255,255,0.02); border-radius: var(--radius-sm); cursor: pointer; transition: 0.2s; border: var(--metal-border); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+        .tab svg { width: 16px; height: 16px; opacity: 0.7; }
+        .tab.active { background: rgba(255,255,255,0.1); color: var(--accent-bright); border-color: rgba(255,255,255,0.2); }
+        .tab.active svg { opacity: 1; color: var(--accent-bright); }
 
-        /* Навигационная панель */
-        .navigation {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 70px;
-            background: var(--dark-metal);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 2px solid var(--border-gold);
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
-            z-index: 100;
-        }
+        /* Lists & Items */
+        .list-container { display: flex; flex-direction: column; gap: 8px; padding: 0 16px; }
+        .list-item { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--card-bg); border-radius: var(--radius-sm); border: var(--metal-border); transition: transform 0.1s; cursor: pointer; text-decoration: none; color: inherit; }
+        .list-item:active { transform: scale(0.98); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.2); }
+        .item-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.05); font-family: var(--font-display); font-weight: 700; }
+        .item-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+        .item-info { flex: 1; min-width: 0; }
+        .item-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+        .item-sub { font-size: 12px; color: var(--hint); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-right { text-align: right; }
+        .item-val { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--accent-bright); }
 
-        .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: var(--text-color);
-            border: none;
-            background: none;
-            font-size: 10px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
+        /* Forms & Inputs */
+        .input, .select, .textarea { width: 100%; padding: 14px; border-radius: 12px; border: var(--metal-border); background: rgba(255,255,255,0.02); color: var(--text); font-size: 15px; font-family: inherit; transition: 0.2s; margin-bottom: 12px; appearance: none; }
+        .input:focus, .select:focus, .textarea:focus { border-color: rgba(255,255,255,0.3); outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
+        .search-box { padding: 0 16px 12px; position: sticky; top: 120px; z-index: 30; background: var(--bg2); }
 
-        /* Имитация иконок текстом */
-        .nav-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
-            background: var(--gold);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 900;
-        }
+        /* Buttons */
+        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%); color: var(--accent-bright); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; font-weight: 600; font-size: 15px; font-family: var(--font-body); cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; text-decoration: none; }
+        .btn:active { transform: scale(0.98); background: rgba(255,255,255,0.15); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .fab { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--metal); color: var(--accent-bright); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 24px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 40; transition: transform 0.2s; }
+        .fab:active { transform: scale(0.9); }
 
-        .nav-item.active {
-            background: rgba(212, 175, 55, 0.1);
-            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2);
-        }
+        /* Modals / Bottom Sheets */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(4px); display: flex; align-items: flex-end; }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal { width: 100%; background: var(--bg); border-radius: 20px 20px 0 0; transform: translateY(100%); transition: 0.35s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.1); border-bottom: none; box-shadow: 0 -8px 40px rgba(0,0,0,0.8); }
+        .modal-overlay.open .modal { transform: translateY(0); }
+        .modal-header { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: var(--metal-border); flex-shrink: 0; }
+        .modal-title { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+        .modal-close { background: rgba(255,255,255,0.05); border: var(--metal-border); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text); cursor: pointer; }
+        .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
 
-        .nav-item.active .nav-icon {
-            text-shadow: 0 0 8px rgba(252, 246, 186, 0.5);
-        }
+        /* Loader */
+        .loader { position: fixed; inset: 0; background: var(--bg2); z-index: 999; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; transition: opacity 0.3s; }
+        .spinner { width: 40px; height: 40px; border: 2px solid var(--card-bg); border-top-color: var(--accent-bright); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Эффект металлической кнопки */
-        .nav-item:active {
-            transform: scale(0.95);
-        }
+        /* Module Specific Styles */
+        .chart-wrapper { height: 220px; width: 100%; position: relative; margin-top: 10px; }
+        .rank-icon { width: 24px; height: 24px; }
+        .rank-1 { color: #ffffff; filter: drop-shadow(0 0 8px rgba(255,255,255,0.5)); }
+        .rank-2 { color: #a1a1aa; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
+        .rank-3 { color: #52525b; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
+
+        .idea-poll { margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: var(--radius-sm); border: var(--metal-border); }
+        .poll-opt { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: var(--card-bg); border: var(--metal-border); border-radius: 8px; cursor: pointer; position: relative; overflow: hidden; }
+        .poll-opt.voted { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
+        .poll-prog { position: absolute; left: 0; top: 0; height: 100%; background: rgba(255,255,255,0.08); transition: width 0.3s; z-index: 1; }
+        .poll-content { position: relative; z-index: 2; display: flex; justify-content: space-between; width: 100%; font-size: 13px; font-weight: 500; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--hint); }
+        .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
     </style>
 </head>
 <body>
 
-<div class="app-container" id="view-port">
-    <iframe id="analytics" src="https://anakaitack-web.vercel.app/" class="active"></iframe>
-    <iframe id="referrals" src="https://anakaitack-web-9fio.vercel.app/"></iframe>
-    <iframe id="hub" src="https://hisrory-vo62.vercel.app/"></iframe>
-    <iframe id="ideas" src="https://ideas-omega-three.vercel.app/"></iframe>
-</div>
+    <div class="header">
+        <div class="header-avatar" id="globalAvatar">U</div>
+        <div class="header-info">
+            <div class="header-title" id="globalName">Загрузка...</div>
+            <div class="header-sub" id="globalSectionName">Аналитика</div>
+        </div>
+    </div>
 
-<nav class="navigation">
-    <button class="nav-item active" onclick="openApp('analytics', this)">
-        <div class="nav-icon">📊</div>
-        <span>Stats</span>
-    </button>
-    <button class="nav-item" onclick="openApp('referrals', this)">
-        <div class="nav-icon">💎</div>
-        <span>Ref</span>
-    </button>
-    <button class="nav-item" onclick="openApp('hub', this)">
-        <div class="nav-icon">⚙️</div>
-        <span>Hub</span>
-    </button>
-    <button class="nav-item" onclick="openApp('ideas', this)">
-        <div class="nav-icon">💡</div>
-        <span>Ideas</span>
-    </button>
-</nav>
+    <div id="view-analytics" class="main-view active">
+        <div class="tabs">
+            <div class="tab active" onclick="switchSubView('analytics', 'overview', this)">Обзор</div>
+            <div class="tab" onclick="switchSubView('analytics', 'leaderboard', this)">Топ профитов</div>
+            <div class="tab" onclick="switchSubView('analytics', 'history', this)">История</div>
+        </div>
+
+        <div id="sub-analytics-overview" class="sub-view active">
+            <div class="card hero-card">
+                <div style="font-size: 11px; color: var(--hint); text-transform: uppercase; font-weight: 600;">Общий профит</div>
+                <div class="font-display" style="font-size: 34px; font-weight: 700; color: var(--accent-bright); margin: 8px 0;" id="statTotal">0 ₽</div>
+                <div style="display: flex; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: var(--metal-border);">
+                    <div style="flex: 1;">
+                        <div class="font-display" style="font-size: 18px; font-weight: 700;" id="statToday">0 ₽</div>
+                        <div style="font-size: 10px; color: var(--hint); text-transform: uppercase;">Сегодня</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="font-display" style="font-size: 18px; font-weight: 700;" id="statRecord">0 ₽</div>
+                        <div style="font-size: 10px; color: var(--hint); text-transform: uppercase;">Рекорд</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Динамика (7 дней)</div>
+            <div class="card">
+                <div class="chart-wrapper"><canvas id="chartMain"></canvas></div>
+            </div>
+
+            <div class="section-title">Топ сервисов</div>
+            <div class="card">
+                <div style="height: 200px; display: flex; justify-content: center;"><canvas id="chartPie"></canvas></div>
+            </div>
+        </div>
+
+        <div id="sub-analytics-leaderboard" class="sub-view">
+            <div class="search-box">
+                <input type="text" class="input" id="searchLb" placeholder="Поиск по нику..." style="margin: 0;">
+            </div>
+            <div style="display: flex; gap: 8px; padding: 0 16px 16px; overflow-x: auto;">
+                <div class="tab active" style="padding: 6px 12px; font-size: 11px;" onclick="setLbFilter('all', this)">Все время</div>
+                <div class="tab" style="padding: 6px 12px; font-size: 11px;" onclick="setLbFilter('month', this)">Месяц</div>
+                <div class="tab" style="padding: 6px 12px; font-size: 11px;" onclick="setLbFilter('day', this)">Сегодня</div>
+            </div>
+            <div class="list-container" id="lbList"></div>
+        </div>
+
+        <div id="sub-analytics-history" class="sub-view">
+            <div class="list-container" id="historyList"></div>
+        </div>
+    </div>
+
+    <div id="view-ideas" class="main-view">
+        <div class="card hero-card" style="margin-top: 16px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 11px; color: var(--hint); text-transform: uppercase; font-weight: 600;">Голосов отдано</div>
+                    <div class="font-display" style="font-size: 24px; font-weight: 700; color: var(--accent-bright);" id="ideaTotalVotes">0</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 11px; color: var(--hint); text-transform: uppercase; font-weight: 600;">Всего идей</div>
+                    <div class="font-display" style="font-size: 24px; font-weight: 700;" id="ideaTotalCount">0</div>
+                </div>
+            </div>
+        </div>
+        <div id="ideasList" style="padding-bottom: 20px;"></div>
+        <button class="fab" onclick="openModal('modalIdea')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </button>
+    </div>
+
+    <div id="view-referrals" class="main-view">
+        <div class="card hero-card" style="margin-top: 16px;">
+            <div style="font-size: 11px; color: var(--hint); text-transform: uppercase; font-weight: 600;">Доход с рефералов</div>
+            <div class="font-display" style="font-size: 34px; font-weight: 700; color: var(--accent-bright); margin: 8px 0;" id="refTotal">0 ₽</div>
+            <div style="display: flex; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: var(--metal-border);">
+                <div style="flex: 1;">
+                    <div class="font-display" style="font-size: 18px; font-weight: 700;" id="refCount">0</div>
+                    <div style="font-size: 10px; color: var(--hint); text-transform: uppercase;">Приглашено</div>
+                </div>
+                <div style="flex: 1;">
+                    <div class="font-display" style="font-size: 18px; font-weight: 700;" id="refPercent">1%</div>
+                    <div style="font-size: 10px; color: var(--hint); text-transform: uppercase;">Ваш процент</div>
+                </div>
+            </div>
+        </div>
+        <div class="section-title">Список рефералов</div>
+        <div class="list-container" id="refsList"></div>
+    </div>
+
+    <div id="view-hub" class="main-view">
+        <div class="tabs">
+            <div class="tab active" onclick="switchSubView('hub', 'services', this)">Сервисы</div>
+            <div class="tab" onclick="switchSubView('hub', 'resources', this)">Материалы</div>
+            <div class="tab" onclick="switchSubView('hub', 'chats', this)">Чаты</div>
+        </div>
+        <div id="sub-hub-services" class="sub-view active"><div class="list-container" id="hubServicesList"></div></div>
+        <div id="sub-hub-resources" class="sub-view"><div class="list-container" id="hubResourcesList"></div></div>
+        <div id="sub-hub-chats" class="sub-view"><div class="list-container" id="hubChatsList"></div></div>
+    </div>
+
+    <div class="modal-overlay" id="modalProfile" onclick="closeModal('modalProfile')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">Профиль</div>
+                <button class="modal-close" onclick="closeModal('modalProfile')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="modal-body" id="profileBody"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalIdea" onclick="closeModal('modalIdea')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">Новая запись</div>
+                <button class="modal-close" onclick="closeModal('modalIdea')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="modal-body">
+                <select class="select" id="ideaCategory" onchange="toggleIdeaForm()">
+                    <option value="Идея">💡 Идея</option>
+                    <option value="Опрос">📊 Опрос</option>
+                    <option value="Баг">🐛 Баг</option>
+                    <option value="Улучшение">⚡ Улучшение</option>
+                </select>
+                <textarea class="textarea" id="ideaContent" rows="4" placeholder="Опишите суть..."></textarea>
+                
+                <div id="pollOptionsContainer" style="display: none; margin-bottom: 12px;">
+                    <div style="font-size: 11px; color:var(--hint); margin-bottom: 8px; text-transform: uppercase;">Варианты ответа:</div>
+                    <input type="text" class="input poll-inp" placeholder="Вариант 1">
+                    <input type="text" class="input poll-inp" placeholder="Вариант 2">
+                    <button class="btn" style="background: rgba(255,255,255,0.02); padding: 8px;" onclick="addPollOption(this)">+ Добавить вариант</button>
+                </div>
+                
+                <button class="btn" onclick="submitIdea()" id="btnSubmitIdea">Опубликовать</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalInfo" onclick="closeModal('modalInfo')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" id="infoTitle">Информация</div>
+                <button class="modal-close" onclick="closeModal('modalInfo')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="modal-body" id="infoBody"></div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchMainView('analytics', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            Аналитика
+        </button>
+        <button class="nav-item" onclick="switchMainView('ideas', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            Идеи
+        </button>
+        <button class="nav-item" onclick="switchMainView('referrals', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            Рефералы
+        </button>
+        <button class="nav-item" onclick="switchMainView('hub', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            Хаб
+        </button>
+    </div>
+
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--hint);">Синхронизация</div>
+    </div>
 
 <script>
-    function openApp(appId, element) {
-        // Скрываем все iframe
-        const iframes = document.querySelectorAll('iframe');
-        iframes.forEach(iframe => iframe.classList.remove('active'));
+    // --- SUPABASE SETUP ---
+    const SUPABASE_URL = 'https://sqoehqvvrbbgaqvkniyw.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxb2VocXZ2cmJiZ2FxdmtuaXl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5ODkzODUsImV4cCI6MjA4MjU2NTM4NX0.-Qam5GFLwzFCvM2MrEYv3HbLeRYUPOLPnLRqcLPcasg';
+    let db; try { db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
 
-        // Убираем активный класс у кнопок
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => item.classList.remove('active'));
+    // --- TELEGRAM SETUP ---
+    const tg = window.Telegram?.WebApp;
+    if(tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#09090b'); tg.setBackgroundColor('#000000'); }
 
-        // Показываем нужный
-        document.getElementById(appId).classList.add('active');
-        element.classList.add('active');
+    // --- GLOBAL STATE ---
+    const state = {
+        userId: tg?.initDataUnsafe?.user?.id || 0,
+        userName: tg?.initDataUnsafe?.user?.first_name || 'Guest',
+        userPhoto: tg?.initDataUnsafe?.user?.photo_url || '',
+        usersMap: {},
+        profits: [],
+        ideas: [],
+        referrals: [], refProfits: [],
+        services: [], resources: [],
+        charts: {},
+        lbFilter: 'all'
+    };
 
-        // Вибрация для мобильных устройств (тактильный отклик)
-        if (window.navigator && window.navigator.vibrate) {
-            window.navigator.vibrate(10);
-        }
+    // --- HELPERS ---
+    const fmtMny = n => new Intl.NumberFormat('ru-RU').format(Math.floor(Number(n||0))) + ' ₽';
+    const getInitials = n => (n||'?').replace(/[^a-zA-Zа-яА-Я ]/g, "").split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    const fmtDate = dStr => {
+        const d = new Date(dStr); const today = new Date().toLocaleDateString('ru-RU');
+        const dt = d.toLocaleDateString('ru-RU'); const tm = d.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+        return dt === today ? `Сегодня, ${tm}` : `${dt}, ${tm}`;
+    };
+    const getAvatarBg = id => { const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899']; return colors[Math.abs(parseInt(id)||0) % colors.length]; };
+
+    // --- INITIALIZATION ---
+    async function init() {
+        if(!db) return;
+        
+        // Fetch all necessary data concurrently for SPA
+        const [uRes, pRes, iRes, rRes, rpRes, sRes, resRes] = await Promise.all([
+            db.from('users').select('*').range(0, 1999),
+            db.from('profits').select('*').order('created_at', {ascending: false}).range(0, 4999),
+            db.from('ideas').select('*').order('created_at', {ascending: false}),
+            db.from('users').select('id, username, full_name, created_at, status').eq('referrer_id', state.userId),
+            db.from('referral_profits').select('*').eq('referrer_id', state.userId),
+            db.from('services').select('*').eq('is_active', true).order('name'),
+            db.from('resources').select('*').eq('is_active', true).order('type')
+        ]);
+
+        (uRes.data || []).forEach(u => state.usersMap[u.id] = u);
+        state.profits = pRes.data || [];
+        state.ideas = iRes.data || [];
+        state.referrals = rRes.data || [];
+        state.refProfits = rpRes.data || [];
+        state.services = sRes.data || [];
+        state.resources = resRes.data || [];
+
+        // Global Header UI
+        document.getElementById('globalName').innerText = state.userName;
+        document.getElementById('globalAvatar').innerHTML = state.userPhoto ? `<img src="${state.userPhoto}">` : getInitials(state.userName);
+
+        renderAnalytics();
+        renderIdeas();
+        renderReferrals();
+        renderHub();
+
+        // Hide loader
+        const l = document.getElementById('loader'); l.style.opacity = '0'; setTimeout(()=>l.style.display='none', 300);
     }
-</script>
 
+    // --- NAVIGATION ---
+    const sectionNames = { analytics: 'Аналитика', ideas: 'Идеи', referrals: 'Рефералы', hub: 'Хаб ресурсов' };
+    function switchMainView(viewId, btn) {
+        if(tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        document.querySelectorAll('.main-view').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        btn.classList.add('active');
+        document.getElementById('globalSectionName').innerText = sectionNames[viewId];
+    }
+    function switchSubView(main, sub, btn) {
+        if(tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        document.querySelectorAll(`#view-${main} .sub-view`).forEach(el => el.classList.remove('active'));
+        document.querySelectorAll(`#view-${main} .tabs .tab`).forEach(el => el.classList.remove('active'));
+        document.getElementById(`sub-${main}-${sub}`).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // --- MODAL MGR ---
+    function openModal(id) { document.getElementById(id).classList.add('open'); if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // --- 1. ANALYTICS LOGIC ---
+    function renderAnalytics() {
+        // Overview
+        const total = state.profits.reduce((a,b)=>a+Number(b.amount),0);
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        const today = state.profits.filter(p=>new Date(p.created_at).toLocaleDateString('en-CA')===todayStr).reduce((a,b)=>a+Number(b.amount),0);
+        const maxP = state.profits.reduce((a,b)=>Math.max(a,Number(b.amount)),0);
+        
+        document.getElementById('statTotal').innerText = fmtMny(total);
+        document.getElementById('statToday').innerText = fmtMny(today);
+        document.getElementById('statRecord').innerText = fmtMny(maxP);
+
+        renderCharts();
+        renderLeaderboard();
+        
+        // History
+        document.getElementById('historyList').innerHTML = state.profits.slice(0,50).map(p => `
+            <div class="list-item">
+                <div class="item-icon" style="background: rgba(255,255,255,0.05);">₽</div>
+                <div class="item-info"><div class="item-title">${p.service_name}</div><div class="item-sub">${fmtDate(p.created_at)}</div></div>
+                <div class="item-right"><div class="item-val text-green">+${fmtMny(p.amount)}</div></div>
+            </div>
+        `).join('');
+
+        // Search bind
+        document.getElementById('searchLb').addEventListener('input', renderLeaderboard);
+    }
+    
+    function setLbFilter(f, btn) {
+        state.lbFilter = f;
+        btn.parentElement.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+        const term = document.getElementById('searchLb').value.toLowerCase().trim();
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        const monthStr = todayStr.slice(0,7);
+        const agg = {};
+        
+        state.profits.forEach(p => {
+            const d = new Date(p.created_at).toLocaleDateString('en-CA');
+            let pass = true;
+            if(state.lbFilter==='day' && d!==todayStr) pass=false;
+            if(state.lbFilter==='month' && d.slice(0,7)!==monthStr) pass=false;
+            if(pass) agg[p.worker_id] = (agg[p.worker_id]||0) + Number(p.amount);
+        });
+
+        let list = Object.keys(agg).map(id => ({id, total: agg[id], user: state.usersMap[id]}))
+                                 .filter(item => !term || (item.user?.full_name||'').toLowerCase().includes(term) || (item.user?.username||'').toLowerCase().includes(term))
+                                 .sort((a,b)=>b.total-a.total).slice(0, 100);
+
+        const html = list.map((item, idx) => {
+            const name = item.user?.full_name || `ID: ${item.id}`;
+            const tag = item.user?.username ? `@${item.user?.username}` : '';
+            let rank = `<span style="opacity:0.5">#${idx+1}</span>`;
+            if(!term && state.lbFilter==='all') {
+                if(idx===0) rank = '🥇'; if(idx===1) rank = '🥈'; if(idx===2) rank = '🥉';
+            }
+            return `
+            <div class="list-item" onclick="openProfile('${item.id}')">
+                <div style="width:24px; text-align:center; font-weight:700; color:var(--hint);">${rank}</div>
+                <div class="item-icon" style="background: ${getAvatarBg(item.id)}33;">${getInitials(name)}</div>
+                <div class="item-info"><div class="item-title">${name}</div><div class="item-sub">${tag}</div></div>
+                <div class="item-right"><div class="item-val">${fmtMny(item.total)}</div></div>
+            </div>`;
+        }).join('');
+        document.getElementById('lbList').innerHTML = html || `<div class="empty-state">Нет данных</div>`;
+    }
+
+    function openProfile(id) {
+        const u = state.usersMap[id] || {id};
+        const uProfits = state.profits.filter(p=>p.worker_id==id);
+        const total = uProfits.reduce((a,b)=>a+Number(b.amount),0);
+        
+        document.getElementById('profileBody').innerHTML = `
+            <div style="text-align:center; margin-bottom: 24px;">
+                <div style="width:72px; height:72px; border-radius:16px; background:${getAvatarBg(id)}33; margin: 0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700;">${getInitials(u.full_name)}</div>
+                <div class="font-display" style="font-size:20px; font-weight:700;">${u.full_name || id}</div>
+                <div class="text-hint" style="font-size:13px;">${u.username ? '@'+u.username : 'ID: '+id}</div>
+                <div class="font-display text-green" style="font-size:28px; font-weight:700; margin-top:12px;">${fmtMny(total)}</div>
+                <div style="font-size:12px; color:var(--hint);">Сумма (${uProfits.length} выплат)</div>
+            </div>
+            <div class="section-title" style="margin: 0 0 12px;">Последние выплаты</div>
+            <div class="list-container" style="padding:0;">
+                ${uProfits.slice(0,10).map(p=>`
+                    <div class="list-item" style="padding:12px;">
+                        <div class="item-info"><div class="item-title">${p.service_name}</div><div class="item-sub">${fmtDate(p.created_at)}</div></div>
+                        <div class="item-val text-green">+${fmtMny(p.amount)}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        openModal('modalProfile');
+    }
+
+    function renderCharts() {
+        const ctx1 = document.getElementById('chartMain'); const ctx2 = document.getElementById('chartPie');
+        // Simple 7 days mock calculation for brevity
+        const days = {}; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days[d.toLocaleDateString('en-CA')]=0; }
+        state.profits.forEach(p => { const k = new Date(p.created_at).toLocaleDateString('en-CA'); if(days[k]!==undefined) days[k]+=Number(p.amount); });
+        
+        if(state.charts.c1) state.charts.c1.destroy();
+        const grad = ctx1.getContext('2d').createLinearGradient(0,0,0,220); grad.addColorStop(0,'rgba(255,255,255,0.15)'); grad.addColorStop(1,'transparent');
+        state.charts.c1 = new Chart(ctx1, {
+            type: 'line', data: { labels: Object.keys(days).map(d=>d.slice(5)), datasets: [{data: Object.values(days), borderColor: '#fff', backgroundColor: grad, fill: true, tension: 0.4}] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: {legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{display:false}} }
+        });
+
+        const map = {}; state.profits.forEach(p => map[p.service_name] = (map[p.service_name]||0) + Number(p.amount));
+        const srt = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        if(state.charts.c2) state.charts.c2.destroy();
+        state.charts.c2 = new Chart(ctx2, {
+            type: 'doughnut', data: { labels: srt.map(x=>x[0]), datasets: [{data: srt.map(x=>x[1]), backgroundColor: ['#ffffff', '#d4d4d8', '#a1a1aa', '#71717a', '#52525b'], borderColor: '#0f0f11'}] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: {legend:{position:'right', labels:{color:'#a1a1aa', font:{size:11}}}} }
+        });
+    }
+
+    // --- 2. IDEAS LOGIC ---
+    function renderIdeas() {
+        document.getElementById('ideaTotalCount').innerText = state.ideas.length;
+        document.getElementById('ideaTotalVotes').innerText = state.ideas.reduce((a,b)=>a+(b.votes_count||0),0);
+
+        const html = state.ideas.sort((a,b)=> (b.votes_count||0) - (a.votes_count||0) || new Date(b.created_at) - new Date(a.created_at)).map(idea => {
+            const isLiked = idea.liked_by?.includes(state.userId.toString());
+            let contentHtml = `<div style="font-size:14px; line-height:1.5; white-space:pre-wrap; margin-top:8px;">${idea.content.replace(/</g,'&lt;')}</div>`;
+            
+            if(idea.category === 'Опрос') {
+                try {
+                    const poll = JSON.parse(idea.content);
+                    const totalV = poll.votes.reduce((a,b)=>a+b,0);
+                    contentHtml = `<div class="idea-poll"><div style="font-weight:600; margin-bottom:12px; font-size:14px;">${poll.question}</div>` + 
+                        poll.options.map((opt, i) => {
+                            const voted = poll.voters[i]?.includes(state.userId.toString());
+                            const pct = totalV===0 ? 0 : (poll.votes[i]/totalV*100);
+                            return `<div class="poll-opt ${voted?'voted':''}" onclick="votePoll('${idea.id}', ${i})">
+                                <div class="poll-prog" style="width:${pct}%"></div>
+                                <div class="poll-content"><span>${opt}</span><span>${poll.votes[i]}</span></div>
+                            </div>`;
+                        }).join('') + `</div>`;
+                } catch(e) {}
+            }
+
+            return `
+            <div class="card" style="padding:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div style="width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px;">${getInitials(idea.user_name)}</div>
+                        <div>
+                            <div style="font-weight:600; font-size:14px;">${idea.user_name}</div>
+                            <div style="font-size:11px; color:var(--hint);">${fmtDate(idea.created_at)}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:10px; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px; color:var(--hint); font-weight:600;">${idea.category}</div>
+                </div>
+                ${contentHtml}
+                <div style="margin-top:12px; padding-top:12px; border-top:var(--metal-border); display:flex; align-items:center;">
+                    <button onclick="likeIdea('${idea.id}')" style="background:none; border:none; display:flex; align-items:center; gap:6px; color:${isLiked?'var(--red)':'var(--hint)'}; font-weight:600; font-size:14px; cursor:pointer;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="${isLiked?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        ${idea.votes_count||0}
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('ideasList').innerHTML = html || '<div class="empty-state">Нет идей</div>';
+    }
+
+    async function likeIdea(id) {
+        if(tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        const idea = state.ideas.find(i=>i.id===id); if(!idea) return;
+        const uid = state.userId.toString();
+        const liked = idea.liked_by?.includes(uid);
+        if(liked) { idea.votes_count--; idea.liked_by = idea.liked_by.filter(x=>x!==uid); }
+        else { idea.votes_count++; idea.liked_by = idea.liked_by||[]; idea.liked_by.push(uid); }
+        renderIdeas(); // optimistic
+        await db.rpc('toggle_vote', { row_id: id, user_tg_id: uid });
+    }
+
+    async function votePoll(ideaId, optIdx) {
+        if(tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        const idea = state.ideas.find(i=>i.id===ideaId); if(!idea) return;
+        let poll = JSON.parse(idea.content); const uid = state.userId.toString();
+        const prevVotedIdx = poll.voters.findIndex(v=>v.includes(uid));
+        
+        if(prevVotedIdx !== -1) { poll.votes[prevVotedIdx]--; poll.voters[prevVotedIdx] = poll.voters[prevVotedIdx].filter(x=>x!==uid); }
+        if(prevVotedIdx !== optIdx) { poll.votes[optIdx]++; poll.voters[optIdx] = poll.voters[optIdx]||[]; poll.voters[optIdx].push(uid); }
+        
+        idea.content = JSON.stringify(poll); renderIdeas(); // optimistic
+        await db.from('ideas').update({content: idea.content}).eq('id', ideaId);
+    }
+
+    function toggleIdeaForm() {
+        const cat = document.getElementById('ideaCategory').value;
+        document.getElementById('pollOptionsContainer').style.display = cat === 'Опрос' ? 'block' : 'none';
+        document.getElementById('ideaContent').placeholder = cat === 'Опрос' ? 'Вопрос...' : 'Опишите суть...';
+    }
+    function addPollOption(btn) {
+        const div = document.createElement('input'); div.type = 'text'; div.className = 'input poll-inp'; div.placeholder = 'Новый вариант';
+        btn.parentNode.insertBefore(div, btn);
+    }
+    async function submitIdea() {
+        const btn = document.getElementById('btnSubmitIdea'); btn.disabled = true; btn.innerText = 'Отправка...';
+        const cat = document.getElementById('ideaCategory').value;
+        let content = document.getElementById('ideaContent').value.trim();
+        
+        if(cat === 'Опрос') {
+            const opts = Array.from(document.querySelectorAll('.poll-inp')).map(i=>i.value.trim()).filter(v=>v);
+            if(opts.length < 2) { alert('Нужно минимум 2 варианта'); btn.disabled=false; btn.innerText='Опубликовать'; return; }
+            content = JSON.stringify({ question: content, options: opts, votes: opts.map(()=>0), voters: opts.map(()=>[]) });
+        }
+
+        if(!content) { btn.disabled=false; btn.innerText='Опубликовать'; return; }
+
+        const newIdea = { user_id: state.userId.toString(), user_name: state.userName, category: cat, content: content, votes_count: 0, liked_by: [] };
+        const {data} = await db.from('ideas').insert(newIdea).select();
+        if(data) { state.ideas.unshift(data[0]); renderIdeas(); closeModal('modalIdea'); document.getElementById('ideaContent').value=''; }
+        btn.disabled=false; btn.innerText='Опубликовать';
+    }
+
+    // --- 3. REFERRALS LOGIC ---
+    function renderReferrals() {
+        const userDb = state.usersMap[state.userId];
+        const refEarnings = parseFloat(userDb?.referral_earnings || 0);
+        
+        document.getElementById('refTotal').innerText = fmtMny(refEarnings);
+        document.getElementById('refCount').innerText = state.referrals.length;
+        
+        const earningsMap = {}; state.refProfits.forEach(rp => earningsMap[rp.referral_id] = (earningsMap[rp.referral_id]||0)+parseFloat(rp.amount));
+
+        const html = state.referrals.map(r => {
+            const earn = earningsMap[r.id]||0; const name = r.full_name||`ID: ${r.id}`;
+            return `
+            <div class="list-item" onclick="showInfo('Реферал', '<div style=\\'text-align:center\\'><div style=\\'font-size:24px; font-weight:700; margin-bottom:8px;\\'>${name}</div><div style=\\'color:var(--green); font-size:24px; font-weight:700;\\'>+${fmtMny(earn)}</div><div style=\\'font-size:12px; color:var(--hint); margin-top:12px;\\'>Зарегистрирован: ${fmtDate(r.created_at)}</div></div>')">
+                <div class="item-icon" style="background:${getAvatarBg(r.id)}33;">${getInitials(name)}</div>
+                <div class="item-info"><div class="item-title">${name}</div><div class="item-sub">${r.status==='active'?'🟢 Активен':'⚪ Ожидает'}</div></div>
+                <div class="item-right"><div class="item-val">+${fmtMny(earn)}</div></div>
+            </div>`;
+        }).join('');
+        document.getElementById('refsList').innerHTML = html || '<div class="empty-state">Нет рефералов</div>';
+    }
+
+    // --- 4. HUB LOGIC ---
+    function renderHub() {
+        const c = ['purple', 'green', 'pink', 'orange', 'blue'];
+        document.getElementById('hubServicesList').innerHTML = state.services.length ? state.services.map((s,i) => `
+            <div class="list-item" onclick="showHubDetail('${s.name}', '${s.description||''}', '${s.bot_link||''}', '${s.manual_link||''}')">
+                <div class="item-icon" style="background:var(--${c[i%c.length]}-light); font-size:20px;">${s.icon||'🔹'}</div>
+                <div class="item-info"><div class="item-title">${s.name}</div><div class="item-sub">${s.description||'Сервис'}</div></div>
+            </div>`).join('') : '<div class="empty-state">Нет сервисов</div>';
+
+        document.getElementById('hubResourcesList').innerHTML = renderHubItems(state.resources.filter(r=>r.type==='resource'));
+        document.getElementById('hubChatsList').innerHTML = renderHubItems(state.resources.filter(r=>r.type==='community'));
+    }
+    
+    function renderHubItems(items) {
+        if(!items.length) return '<div class="empty-state">Пусто</div>';
+        return items.map(r => `
+            <a href="${r.content_link}" target="_blank" class="list-item">
+                <div class="item-icon" style="background:rgba(255,255,255,0.05);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
+                <div class="item-info"><div class="item-title">${r.title}</div><div class="item-sub">Открыть ссылку</div></div>
+            </a>`).join('');
+    }
+
+    function showHubDetail(name, desc, bot, manual) {
+        let html = `<div style="text-align:center; margin-bottom:24px;"><div class="font-display" style="font-size:22px; font-weight:700;">${name}</div><div style="font-size:14px; color:var(--hint); margin-top:8px;">${desc}</div></div>`;
+        if(bot) html += `<a href="${bot}" target="_blank" class="btn">Открыть бота</a>`;
+        if(manual) html += `<a href="${manual}" target="_blank" class="btn" style="background:rgba(255,255,255,0.05); margin-top:8px; border-color:transparent;">Читать мануал</a>`;
+        showInfo('Детали сервиса', html);
+    }
+
+    function showInfo(title, html) {
+        document.getElementById('infoTitle').innerText = title;
+        document.getElementById('infoBody').innerHTML = html;
+        openModal('modalInfo');
+    }
+
+    // Execute
+    window.onload = init;
+</script>
 </body>
 </html>
