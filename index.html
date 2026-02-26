@@ -659,15 +659,24 @@
     // --- 4. HUB LOGIC ---
     function renderHub() {
         const c = ['purple', 'green', 'pink', 'orange', 'blue'];
-        document.getElementById('hubServicesList').innerHTML = state.services.length ? state.services.map((s,i) => `
-            <div class="list-item" onclick="showHubDetail('${s.name}', '${s.description||''}', '${s.bot_link||''}', '${s.manual_link||''}')">
-                <div class="item-icon" style="background:var(--${c[i%c.length]}-light); font-size:20px;">${s.icon||'🔹'}</div>
-                <div class="item-info"><div class="item-title">${s.name}</div><div class="item-sub">${s.description||'Сервис'}</div></div>
+        document.getElementById('hubServicesList').innerHTML = state.services.length ? state.services.map((s, i) => `
+            <div class="list-item hub-service-item" data-service-index="${i}">
+                <div class="item-icon" style="background:var(--${c[i % c.length]}-light); font-size:20px;">${(s.icon || '🔹').toString().replace(/</g, '&lt;')}</div>
+                <div class="item-info"><div class="item-title">${(s.name || '').toString().replace(/</g, '&lt;')}</div><div class="item-sub">${((s.description || 'Сервис') + '').replace(/</g, '&lt;')}</div></div>
             </div>`).join('') : '<div class="empty-state">Нет сервисов</div>';
 
-        document.getElementById('hubResourcesList').innerHTML = renderHubItems(state.resources.filter(r=>r.type==='resource'));
-        document.getElementById('hubChatsList').innerHTML = renderHubItems(state.resources.filter(r=>r.type==='community'));
+        document.getElementById('hubResourcesList').innerHTML = renderHubItems(state.resources.filter(r => r.type === 'resource'));
+        document.getElementById('hubChatsList').innerHTML = renderHubItems(state.resources.filter(r => r.type === 'community'));
     }
+
+    document.getElementById('hubServicesList').addEventListener('click', function(e) {
+        const item = e.target.closest('.hub-service-item');
+        if (!item) return;
+        const idx = parseInt(item.getAttribute('data-service-index'), 10);
+        if (isNaN(idx) || !state.services[idx]) return;
+        const s = state.services[idx];
+        showHubDetail(s.name || '', s.description || '', s.bot_link || '', s.manual_link || '');
+    });
     
     function renderHubItems(items) {
         if(!items.length) return '<div class="empty-state">Пусто</div>';
