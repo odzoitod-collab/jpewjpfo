@@ -93,7 +93,8 @@ body { font-family:var(--f); background:var(--bg); color:var(--t2);
            mask-image:radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 80%) }
 
 /* ── SHELL ── */
-.shell { position:relative; z-index:1; max-width:var(--max); margin:0 auto; padding:0 var(--p) }
+.shell { position:relative; z-index:1; max-width:var(--max); margin:0 auto; padding:0 var(--p);
+          overscroll-behavior-y:contain }
 
 /* ── SMART HEADER ── */
 .hdr { position:sticky; top:0; z-index:90;
@@ -232,6 +233,19 @@ body { font-family:var(--f); background:var(--bg); color:var(--t2);
       cursor:pointer; text-decoration:none; color:inherit;
       transition:transform .1s ease, border-color .14s; min-height:60px }
 .li:active { transform:scale(.988); border-color:var(--gb2) }
+.li--click { cursor:pointer; touch-action:manipulation }
+.li--click:focus-visible { outline:2px solid var(--blue); outline-offset:2px }
+/* Карточка деталей профита */
+.profit-det-hero { text-align:center; padding:4px 0 18px; border-bottom:1px solid var(--gb); margin-bottom:16px }
+.profit-det-sum { font-size:32px; font-weight:900; color:var(--green); line-height:1.1;
+                  font-variant-numeric:tabular-nums }
+.profit-det-svc { font-size:15px; font-weight:700; color:var(--t1); margin-top:10px }
+.profit-kv { display:grid; grid-template-columns:1fr auto; gap:10px 16px; padding:10px 0;
+             border-bottom:1px solid var(--gb); font-size:13px; align-items:start }
+.profit-kv span:first-child { color:var(--t4); font-family:var(--fm); font-size:10px;
+                               text-transform:uppercase; letter-spacing:.06em; padding-top:2px }
+.profit-kv span:last-child { color:var(--t1); font-weight:600; text-align:right; word-break:break-word }
+.profit-det-btn { margin-top:16px }
 .li-ico { width:40px; height:40px; border-radius:var(--r-sm); display:flex; align-items:center;
           justify-content:center; flex-shrink:0; font-weight:800; font-size:14px; border:1px solid var(--gb); color:currentColor }
 .li-ico svg { width:20px; height:20px; flex-shrink:0 }
@@ -348,7 +362,8 @@ body { font-family:var(--f); background:var(--bg); color:var(--t2);
                text-transform:uppercase; letter-spacing:.06em; color:var(--t1) }
 .sheet-x { width:32px; height:32px; border-radius:50%; background:var(--bg4); border:1px solid var(--gb);
            display:flex; align-items:center; justify-content:center; color:var(--t2); cursor:pointer }
-.sheet-body { padding:18px; overflow-y:auto; flex:1; -webkit-overflow-scrolling:touch }
+.sheet-body { padding:18px; overflow-y:auto; flex:1; -webkit-overflow-scrolling:touch;
+              overscroll-behavior:contain }
 
 /* ── INFO BANNER ── */
 .banner { display:flex; align-items:flex-start; gap:12px; padding:13px 15px;
@@ -504,7 +519,7 @@ body { font-family:var(--f); background:var(--bg); color:var(--t2);
         <div class="hdr-name" id="gName">Загрузка…</div>
         <div class="hdr-sub"  id="gSub">аналитика</div>
     </div>
-    <div class="hdr-bal" id="gBal">0 ₽</div>
+    <div class="hdr-bal" id="gBal">0&nbsp;$</div>
 </header>
 
 <!-- ═══════ ANALYTICS ═══════ -->
@@ -601,7 +616,7 @@ body { font-family:var(--f); background:var(--bg); color:var(--t2);
         </div>
         <div style="position:relative;z-index:2;padding-right:128px">
             <div style="font-family:var(--fm);font-size:8px;color:var(--t4);text-transform:uppercase;letter-spacing:.09em">Баланс</div>
-            <div id="profBal" style="font-size:30px;font-weight:900;color:var(--t1);margin:5px 0 3px;line-height:1">0 ₽</div>
+            <div id="profBal" style="font-size:30px;font-weight:900;color:var(--t1);margin:5px 0 3px;line-height:1">0&nbsp;$</div>
             <div id="profTag" style="font-family:var(--fm);font-size:10px;color:var(--blue);min-height:14px"></div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
                 <span id="profStatus" class="badge badge--active"><span class="dot"></span>активен</span>
@@ -621,11 +636,11 @@ body { font-family:var(--f); background:var(--bg); color:var(--t2);
     <!-- bot actions -->
     <div class="sec rv delay-2"><span>Действия</span></div>
     <div class="btn-2 rv delay-2">
-        <button class="btn btn--green" onclick="botAct('send_check')">
+        <button type="button" class="btn btn--green" onclick="botAct('send_check')">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Отправить чек
         </button>
-        <button class="btn btn--amber" onclick="botAct('withdrawal')">
+        <button type="button" class="btn btn--amber" onclick="botAct('withdrawal')">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
             Запросить вывод
         </button>
@@ -767,6 +782,18 @@ body { font-family:var(--f); background:var(--bg); color:var(--t2);
         </div>
     </div>
 
+<!-- Profit transaction detail -->
+<div class="ov" id="mProfit" onclick="closeM('mProfit')">
+    <div class="sheet" onclick="event.stopPropagation()" id="shProfit">
+        <div class="sheet-drag"></div>
+        <div class="sheet-hdr">
+            <span class="sheet-title">Профит</span>
+            <button type="button" class="sheet-x" onclick="closeM('mProfit')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div class="sheet-body" id="profitDetB"></div>
+    </div>
+</div>
+
 <!-- ═══════ NAV ISLAND ═══════ -->
 <div class="nav-wrap">
 <nav class="nav" id="navIsland">
@@ -806,7 +833,18 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const BOT = 'irlpro_bot';
 let db; try { db = window.supabase.createClient(SB_URL, SB_KEY) } catch(e) {}
     const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#060b16'); tg.setBackgroundColor('#060b16') }
+if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor('#060b16');
+    tg.setBackgroundColor('#060b16');
+    try {
+        if (typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('7.7')) tg.disableVerticalSwipes();
+    } catch (e) {}
+    try {
+        if (typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.2')) tg.enableClosingConfirmation();
+    } catch (e2) {}
+}
 
 const S = {
     uid: tg?.initDataUnsafe?.user?.id || 0,
@@ -820,6 +858,18 @@ const S = {
    UTILS
 ───────────────────────────────────── */
 const fmt  = n => new Intl.NumberFormat('ru-RU').format(Math.floor(Number(n||0))) + ' ₽';
+/** Баланс в БД — balance_usd, отображаем в долларах */
+const fmtUsd = n => new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(n || 0)) + '\u00A0$';
+const fmtAmt = n => {
+    const x = Number(n || 0);
+    return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(x) + ' ₽';
+};
+const fmtDT = d => {
+    if (!d) return '—';
+    const x = new Date(d);
+    if (Number.isNaN(x.getTime())) return '—';
+    return x.toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
 const esc  = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const ini  = n => (n||'?').replace(/[^a-zA-Zа-яА-Я ]/g,'').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const avBg = id => { const c=['#3b5bdb','#7048e8','#0ca678','#e67700','#c92a2a','#a61e4d']; return c[Math.abs(parseInt(id)||0)%c.length] };
@@ -952,7 +1002,7 @@ function setupSwipe(sheetId, modalId) {
     sheet.addEventListener('touchend', e => {
         dragging = false;
         const dy = e.changedTouches[0].clientY - startY;
-        if (dy > 90) { closeM(modalId); sheet.style.transform = '' }
+        if (dy > 130) { closeM(modalId); sheet.style.transform = '' }
         else { sheet.style.transition = 'transform .3s'; sheet.style.transform = ''; setTimeout(() => sheet.style.transition = '', 320) }
     });
 }
@@ -999,7 +1049,7 @@ function setupSwipe(sheetId, modalId) {
     document.getElementById('gName').textContent = S.uname;
     document.getElementById('gAv').innerHTML = S.uphoto ? `<img src="${S.uphoto}" loading="lazy">` : ini(S.uname);
     const bal = parseFloat(me?.balance_usd || 0);
-    if (bal > 0) { const b = document.getElementById('gBal'); b.textContent = fmt(bal); b.style.display = '' }
+    if (bal > 0) { const b = document.getElementById('gBal'); b.textContent = fmtUsd(bal); b.style.display = '' }
 
     renderAnalytics(); renderIdeas(); renderProfile(); renderHub();
 
@@ -1008,7 +1058,7 @@ function setupSwipe(sheetId, modalId) {
     setupRv();
     setupTilt(document.getElementById('heroAnalytics'));
     setupTilt(document.getElementById('heroProfile'));
-    ['mIdea','mInfo','mProfDet'].forEach(id => setupSwipe('sh'+id.slice(1), id));
+    ['mIdea','mInfo','mProfDet','mProfit'].forEach(id => setupSwipe('sh'+id.slice(1), id));
 
     if (!S._sb) {
         S._sb = true;
@@ -1079,7 +1129,39 @@ function closeM(id) { document.getElementById(id).classList.remove('open') }
 
 /* ─────────────────────────────────────
    BOT DEEP LINKS
+   В WebView Mini App window.open часто блокируется; openTelegramLink на части
+   клиентов отсутствует или «молчит» — цепочка openLink → openTelegramLink → location.
 ───────────────────────────────────── */
+function openTgUrl(url) {
+    const w = window.Telegram?.WebApp;
+    if (!w) {
+        window.location.href = url;
+        return;
+    }
+    const hasOL = typeof w.openLink === 'function';
+    const hasOTL = typeof w.openTelegramLink === 'function';
+    if (hasOL) {
+        try {
+            w.openLink(url, { try_browser: 'internal' });
+            return;
+        } catch (e1) {}
+        try {
+            w.openLink(url, { try_instant_view: false });
+            return;
+        } catch (e2) {}
+        try {
+            w.openLink(url);
+            return;
+        } catch (e3) {}
+    }
+    if (hasOTL) {
+        try {
+            w.openTelegramLink(url);
+            return;
+        } catch (e4) {}
+    }
+    window.location.href = url;
+}
 function botAct(action) {
     if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     const urls = {
@@ -1087,8 +1169,7 @@ function botAct(action) {
         withdrawal: `https://t.me/${BOT}?start=withdrawal`,
     };
     const url = urls[action] || `https://t.me/${BOT}`;
-    if (tg?.openTelegramLink) tg.openTelegramLink(url);
-    else window.open(url, '_blank');
+    openTgUrl(url);
 }
 
 /* ─────────────────────────────────────
@@ -1165,17 +1246,55 @@ function renderHistory() {
         const status = p.status === 'paid'
             ? '<span class="badge badge--paid">выплачено</span>'
             : '<span class="badge badge--hold">холд</span>';
-        return `<div class="li rv">
+        return `<div class="li rv li--click" role="button" tabindex="0" onclick='openProfitDetail(${JSON.stringify(p.id)})'
+            onkeydown='if(event.key==="Enter"||event.key===" "){event.preventDefault();openProfitDetail(${JSON.stringify(p.id)})}'>
             <div class="li-ico" style="background:var(--green-s);color:var(--green)">${Ico.rub}</div>
             <div class="li-body">
                 <div class="li-t">${esc(p.service_name)}${S.histF==='all'&&!isMe?` · <span style="color:var(--t4);font-size:12px">${esc(nm)}</span>`:''}</div>
-                <div class="li-s" style="display:flex;gap:5px;align-items:center;margin-top:4px">${status}<span>${fmtD(p.created_at)}</span></div>
+                <div class="li-s" style="display:flex;gap:5px;align-items:center;margin-top:4px;flex-wrap:wrap">${status}<span>${fmtD(p.created_at)}</span><span style="color:var(--t4);font-size:11px">подробнее →</span></div>
             </div>
             <div class="li-end" style="color:var(--green)">+${fmt(p.amount)}</div>
             </div>`;
         }).join('');
     document.getElementById('histList').innerHTML = h || emptyWrap(Ico.list, 'Нет данных');
     freshRv();
+}
+
+function openProfitDetail(profitId) {
+    const p = S.profits.find(x => String(x.id) === String(profitId));
+    if (!p) return;
+    const u = S.users[p.worker_id];
+    const nm = u?.full_name || `Участник #${p.worker_id}`;
+    const un = u?.username ? '@' + u.username : '';
+    const isPaid = p.status === 'paid';
+    const badge = isPaid ? 'badge--paid' : 'badge--hold';
+    const badgeT = isPaid ? 'выплачено' : 'холд';
+    const sid = String(p.worker_id).replace(/'/g, "\\'");
+    const skip = new Set(['id', 'worker_id', 'amount', 'net_profit', 'service_name', 'status', 'created_at', 'paid_at']);
+    const labels = { branch_id: 'Филиал', tag: 'Тег', note: 'Примечание', description: 'Описание', withdrawal_id: 'ID вывода' };
+    let extras = '';
+    Object.keys(p).sort().forEach(k => {
+        if (skip.has(k)) return;
+        const v = p[k];
+        if (v === null || v === undefined || v === '') return;
+        const vs = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        const lk = labels[k] || k.replace(/_/g, ' ');
+        extras += `<div class="profit-kv"><span>${esc(lk)}</span><span>${esc(vs)}</span></div>`;
+    });
+    document.getElementById('profitDetB').innerHTML = `
+        <div class="profit-det-hero">
+            <div class="profit-det-sum">+${fmtAmt(p.amount)}</div>
+            <div class="profit-det-svc">${esc(p.service_name)}</div>
+            <div style="margin-top:12px"><span class="badge ${badge}">${badgeT}</span></div>
+        </div>
+        <div class="profit-kv"><span>Чистый профит</span><span>${fmtAmt(p.net_profit)}</span></div>
+        <div class="profit-kv"><span>Дата начисления</span><span>${fmtDT(p.created_at)}</span></div>
+        <div class="profit-kv"><span>Дата выплаты</span><span>${p.paid_at ? fmtDT(p.paid_at) : '—'}</span></div>
+        <div class="profit-kv"><span>ID записи</span><span>#${esc(String(p.id))}</span></div>
+        <div class="profit-kv"><span>Участник</span><span>${esc(nm)}${un ? '<br><span style="color:var(--t4);font-weight:500;font-size:12px">' + esc(un) + '</span>' : ''}</span></div>
+        ${extras}
+        <button type="button" class="btn btn--ghost profit-det-btn" onclick="closeM('mProfit');requestAnimationFrame(function(){openProf('${sid}')})">Профиль участника</button>`;
+    openM('mProfit');
 }
 
 function openProf(id) {
@@ -1295,9 +1414,9 @@ function renderProfile() {
     const el = (id, v) => { const e=document.getElementById(id); if(e) e.textContent=v };
     el('myTotal', fmt(totP)); el('myToday', fmt(todP)); el('myWeek', fmt(wkP)); el('myMonth', fmt(moP));
 
-    /* balance */
+    /* balance (USD в БД) */
     const bal = parseFloat(me?.balance_usd || 0);
-    el('profBal', fmt(bal));
+    el('profBal', fmtUsd(bal));
 
     /* tag */
     const tag = me?.user_tag || '';
@@ -1388,9 +1507,8 @@ function _fbCopy(t) {
 function shareRef() {
     const url = `https://t.me/${BOT}?start=ref_${S.uid}`;
     const tgShare = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Присоединяйся к IRL — зарабатывай с нами!')}`;
-    if (tg?.openTelegramLink) tg.openTelegramLink(tgShare);
-    else window.open(tgShare, '_blank');
     if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    openTgUrl(tgShare);
 }
 
 /* ─────────────────────────────────────
